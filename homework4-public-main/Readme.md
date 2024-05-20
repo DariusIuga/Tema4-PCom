@@ -12,7 +12,7 @@ Dependencies:
 It is highly recommended to use a VirtualEnv:
 ```sh
 python3 -mvenv .venv
-# Note: you need to source activate each time you start a new terminal
+`# Note: you need to source activate each time you start a new terminal
 source .venv/bin/activate
 ```
 
