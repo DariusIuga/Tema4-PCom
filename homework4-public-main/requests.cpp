@@ -6,18 +6,24 @@
 #include <netinet/in.h> /* struct sockaddr_in, struct sockaddr */
 #include <netdb.h>      /* struct hostent, gethostbyname */
 #include <arpa/inet.h>
+
 #include "helpers.hpp"
 #include "requests.hpp"
 
-char *compute_get_request(char *host, char *url, char *query_params,
-                          char **cookies, int cookies_count) {
-    char *message = (char *) calloc(BUFLEN, sizeof(char));
-    char *line = (char *) calloc(LINELEN, sizeof(char));
+using namespace std;
+using json = nlohmann::json;
+
+
+char* compute_get_request(const char* host, char* url, char* query_params,
+    char** cookies, int cookies_count) {
+    char* message = (char*)calloc(BUFLEN, sizeof(char));
+    char* line = (char*)calloc(LINELEN, sizeof(char));
 
     // Step 1: write the method name, URL, request params (if any) and protocol type
     if (query_params != NULL) {
         sprintf(line, "GET %s?%s HTTP/1.1", url, query_params);
-    } else {
+    }
+    else {
         sprintf(line, "GET %s HTTP/1.1", url);
     }
 
@@ -29,7 +35,7 @@ char *compute_get_request(char *host, char *url, char *query_params,
     // Step 3 (optional): add headers and/or cookies, according to the protocol format
     if (cookies != NULL) {
         sprintf(line, "Cookie: %s", cookies[0]);
-        char *temp = (char *) calloc(LINELEN, sizeof(char));
+        char* temp = (char*)calloc(LINELEN, sizeof(char));
         for (int i = 1; i < cookies_count; i++) {
             sprintf(temp, "; %s", cookies[i]);
             strcat(line, temp);
@@ -43,53 +49,49 @@ char *compute_get_request(char *host, char *url, char *query_params,
     return message;
 }
 
-char *compute_post_request(char *host, char *url, char *content_type,
-                           char **body_data,
-                           int body_data_fields_count, char **cookies,
-                           int cookies_count) {
-    char *message = (char *) calloc(BUFLEN, sizeof(char));
-    char *line = (char *) calloc(LINELEN, sizeof(char));
-    char *body_data_buffer = (char *) calloc(LINELEN, sizeof(char));
+char* compute_post_request(const char* host, char* url, char* content_type,
+    const json* json, const string& jwt_token) {
+    char* message = (char*)calloc(BUFLEN, sizeof(char));
+    char* line = (char*)calloc(LINELEN, sizeof(char));
 
     // Step 1: write the method name, URL and protocol type
+    memset(line, 0, sizeof(char) * LINELEN);
     sprintf(line, "POST %s HTTP/1.1", url);
     compute_message(message, line);
 
     // Step 2: add the host
+    memset(line, 0, sizeof(char) * LINELEN);
     sprintf(line, "Host: %s", host);
     compute_message(message, line);
+
     /* Step 3: add necessary headers (Content-Type and Content-Length are mandatory)
             in order to write Content-Length you must first compute the message size
     */
-    int len = 0;
-    for (int i = 0; i < body_data_fields_count; i++) {
-        strcat(body_data_buffer, body_data[i]);
-        len += strlen(body_data[i]);
-    }
+    // dump converts a json object to a string (serialization)
+    string payload = json->dump();
+
+    memset(line, 0, sizeof(char) * LINELEN);
     sprintf(line, "Content-Type: %s", content_type);
     compute_message(message, line);
-    sprintf(line, "Content-Length: %d", len);
+
+    memset(line, 0, sizeof(char) * LINELEN);
+    sprintf(line, "Content-Length: %zu", payload.length());
     compute_message(message, line);
-    // Step 4 (optional): add cookies
-    if (cookies != NULL) {
-        sprintf(line, "Cookie: %s", cookies[0]);
-        char *temp = (char *) calloc(LINELEN, sizeof(char));
 
-        for (int i = 1; i < cookies_count; i++) {
-            sprintf(temp, "; %s", cookies[i]);
-            strcat(line, temp);
-        }
-
-        free(temp);
+    // Step 4: add the JWT token
+    if (jwt_token.empty() == false) {
+        memset(line, 0, sizeof(char) * LINELEN);
+        sprintf(line, "Authorization: Bearer %s", jwt_token.c_str());
         compute_message(message, line);
     }
+
     // Step 5: add new line at end of header
     compute_message(message, "");
+
     // Step 6: add the actual payload data
     memset(line, 0, LINELEN);
-    strcat(message, body_data_buffer);
+    strcat(message, payload.c_str());
 
     free(line);
-    free(body_data_buffer);
     return message;
 }
