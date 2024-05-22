@@ -20,19 +20,19 @@ constexpr int SERVER_PORT = 8080;
 // Gets the cookie from the Set-Cookie header of an HTTP response.
 // If the header doesn't exist (in the case of an error), it returns "".
 string get_cookie(char* response) {
-    char* cookie = strstr(response, "Set-Cookie: ");
+    char* session_cookie = strstr(response, "Set-Cookie: ");
     char const delimitator[] = " ;";
 
-    if (cookie != nullptr) {
-        // Split at "Set-Cookie: ".
-        strtok(cookie, delimitator);
-        // Return the cookie, which is at the next split.
+    if (session_cookie != nullptr) {
+        strtok(session_cookie, delimitator);
+        // The cookie is the content of the header, after ':'.
         return string(strtok(nullptr, delimitator));
     }
 
     return "";
 }
 
+// Used for selecting which action the client will do
 enum Command {
     Register,
     Login,
@@ -46,6 +46,7 @@ enum Command {
     InvalidCommand
 };
 
+// Maps user input to enum values
 unordered_map<string, Command> commandMap = {
     {"register", Register},
     {"login", Login},
@@ -103,7 +104,7 @@ int main() {
                 {"password", password}
             };
 
-            request = compute_post_request(SERVER_IP, "/api/v1/tema/auth/login", "application/json", &prompt_json, "");
+            request = compute_post_request(SERVER_IP, "/api/v1/tema/auth/register", "application/json", &prompt_json, "");
 
             send_to_server(sockfd, request);
 
@@ -138,7 +139,7 @@ int main() {
                 {"password", password}
             };
 
-            request = compute_post_request(SERVER_IP, "/api/v1/tema/auth/register", "application/json", &prompt_json, "");
+            request = compute_post_request(SERVER_IP, "/api/v1/tema/auth/login", "application/json", &prompt_json, "");
 
             send_to_server(sockfd, request);
 
