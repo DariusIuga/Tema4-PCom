@@ -14,8 +14,8 @@ using namespace std;
 using json = nlohmann::json;
 
 
-char* compute_get_request(const char* host, char* url, char* query_params,
-    char** cookies, int cookies_count) {
+char* compute_get_request(const char* host, const char* url, char* query_params,
+    const vector<string> cookies, const string& jwt_token) {
     char* message = (char*)calloc(BUFLEN, sizeof(char));
     char* line = (char*)calloc(LINELEN, sizeof(char));
 
@@ -30,26 +30,33 @@ char* compute_get_request(const char* host, char* url, char* query_params,
     compute_message(message, line);
 
     // Step 2: add the host
+    memset(line, 0, sizeof(char) * LINELEN);
     sprintf(line, "Host: %s", host);
     compute_message(message, line);
+
     // Step 3 (optional): add headers and/or cookies, according to the protocol format
-    if (cookies != NULL) {
-        sprintf(line, "Cookie: %s", cookies[0]);
-        char* temp = (char*)calloc(LINELEN, sizeof(char));
-        for (int i = 1; i < cookies_count; i++) {
-            sprintf(temp, "; %s", cookies[i]);
-            strcat(line, temp);
+    // Parse cookies
+    if (cookies.empty() == false) {
+        for (const string& cookie : cookies) {
+            memset(line, 0, sizeof(char) * LINELEN);
+            sprintf(line, "Cookie: %s", cookie.c_str());
+            compute_message(message, line);
         }
-        free(temp);
     }
-    compute_message(message, line);
-    free(line);
+
+    // Parse jwt token
+    if (jwt_token.empty() == false) {
+        memset(line, 0, sizeof(char) * LINELEN);
+        sprintf(line, "Authorization: Bearer %s", jwt_token.c_str());
+        compute_message(message, line);
+    }
+
     // Step 4: add final new line
     compute_message(message, "");
     return message;
 }
 
-char* compute_post_request(const char* host, char* url, char* content_type,
+char* compute_post_request(const char* host, const char* url, char* const content_type,
     const json* json, const string& jwt_token) {
     char* message = (char*)calloc(BUFLEN, sizeof(char));
     char* line = (char*)calloc(LINELEN, sizeof(char));
