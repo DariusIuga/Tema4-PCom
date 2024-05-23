@@ -256,9 +256,12 @@ int main() {
             }
 
             // Add id to URL
-            url = "/api/v1/tema/library/books" + '/' + id;
+            url = "/api/v1/tema/library/books/" + id;
+
             vector<string> cookies;
             request = compute_get_request(SERVER_IP, url, NULL, cookies, jwt_token);
+
+            cout << "Request: " << request << endl << endl;
 
             sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
                 SOCK_STREAM, 0);
@@ -339,7 +342,7 @@ int main() {
             }
 
             // Add id to URL
-            url = "/api/v1/tema/library/books" + '/' + id;
+            url = "/api/v1/tema/library/books/" + id;
 
             // Create delete request.
             request = compute_delete_request(SERVER_IP, url, jwt_token);
