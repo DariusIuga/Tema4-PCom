@@ -354,8 +354,31 @@ int main() {
             break;
         }
         case Logout:
-            cout << "Logout command executed" << endl;
+        {
+            vector<string> cookies;
+            cookies.push_back(session_cookie);
+            url = "/api/v1/tema/auth/logout";
+
+            request = compute_get_request(SERVER_IP, url, NULL, cookies, jwt_token);
+
+            sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
+                SOCK_STREAM, 0);
+
+            send_to_server(sockfd, request);
+
+            response = receive_from_server(sockfd);
+
+            close_connection(sockfd);
+
+            // Print the response from the server.
+            cout << response << endl;
+
+            // Clear the session cookie and jwt token
+            session_cookie = "";
+            jwt_token = "";
+
             break;
+        }
         default:
             cerr << "Error: Invalid command detected!" << endl;
             break;
