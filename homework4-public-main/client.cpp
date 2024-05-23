@@ -127,6 +127,7 @@ int main() {
 
             // Validate input: reject username/passsword with empty spaces.
             if (username.find(" ") != string::npos || password.find(" ") != string::npos) {
+                cout << "ERROR: Username or password contain spaces!";
                 continue;
             }
 
@@ -165,6 +166,7 @@ int main() {
 
             // Validate input: reject username/passsword with empty spaces.
             if (username.find(" ") != string::npos || password.find(" ") != string::npos) {
+                cout << "ERROR: Username or password contain spaces!";
                 continue;
             }
 
@@ -291,6 +293,7 @@ int main() {
 
             // Validate page count.
             if (is_a_number(page_count) == false) {
+                cout << "ERROR: Page count should be a number!";
                 break;
             }
 
@@ -303,8 +306,10 @@ int main() {
                    {"publisher", publisher}
             };
 
+            // cout << "JSON: " << new_book_json << endl << endl;
+
             url = "/api/v1/tema/library/books";
-            compute_post_request(SERVER_IP, url, "application/json", new_book_json, jwt_token);
+            request = compute_post_request(SERVER_IP, url, "application/json", new_book_json, jwt_token);
 
             sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
                 SOCK_STREAM, 0);
