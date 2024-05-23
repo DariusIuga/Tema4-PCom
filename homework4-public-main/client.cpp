@@ -274,12 +274,12 @@ int main() {
         }
         case AddBook:
         {
-            cout << "Adding book!" << endl;
             // Output a prompt for creating a new book
             // and get input from the user.
             string title, author, genre, publisher, page_count;
 
-            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore leftover newline character
+
             cout << "title=";
             getline(cin, title);
             cout << "author=";
