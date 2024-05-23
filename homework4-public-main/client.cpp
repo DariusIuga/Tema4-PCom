@@ -17,6 +17,37 @@ constexpr char SERVER_IP[] = "34.246.184.49";
 // #define WEATHER_SERVER_ADDR "api.openweathermap.org"
 constexpr int SERVER_PORT = 8080;
 
+bool is_http_status_ok(const char* response) {
+    if (response == nullptr) {
+        return false;
+    }
+
+    // Find the first space to get the end of the HTTP version string
+    const char* spacePos = strchr(response, ' ');
+    if (spacePos == nullptr) {
+        return false;
+    }
+
+    // Move past the space to get the status code
+    const char* statusCodePos = spacePos + 1;
+
+    // Check if the status code is at leas3 characters long
+    if (strlen(statusCodePos) < 3) {
+        return false;
+    }
+
+    // Check that the status code is a number
+    for (int i = 0; i < 3; ++i) {
+        if (!isdigit(statusCodePos[i])) {
+            return false;
+        }
+    }
+
+    // Check the first digit of the status code
+    char firstDigit = statusCodePos[0];
+    return (firstDigit == '1' || firstDigit == '2' || firstDigit == '3');
+}
+
 const string get_jwt_token(char* response) {
     char* token = strstr(response, "token");
     char const delimitator[] = ":\"";
@@ -150,6 +181,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             break;
@@ -189,6 +226,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             // Search for the session cookie in the HTTP response header for cookies.
@@ -215,6 +258,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             // Search for the jwt token in the HTTP response.
@@ -238,6 +287,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             break;
@@ -273,6 +328,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             break;
@@ -324,6 +385,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             break;
@@ -357,6 +424,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             break;
@@ -379,6 +452,12 @@ int main() {
             close_connection(sockfd);
 
             // Print the response from the server.
+            if (is_http_status_ok(response)) {
+                cout << "SUCCESS:" << endl;
+            }
+            else {
+                cout << "ERROR:" << endl;
+            }
             cout << response << endl;
 
             // Clear the session cookie and jwt token
