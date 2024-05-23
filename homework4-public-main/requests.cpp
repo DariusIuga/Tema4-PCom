@@ -13,7 +13,6 @@
 using namespace std;
 using json = nlohmann::json;
 
-
 char* compute_get_request(const char* host, const string& url, char* query_params, const vector<string> cookies, const string& jwt_token) {
     char* message = (char*)calloc(BUFLEN, sizeof(char));
     char* line = (char*)calloc(LINELEN, sizeof(char));
