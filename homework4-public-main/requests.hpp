@@ -14,6 +14,9 @@ char* compute_get_request(const char* host, const string& url, char* query_param
 // computes and returns a POST request string (cookies can be NULL if not needed)
 char* compute_post_request(const char* host, const string& url, const string& content_type, const json& json, const string& jwt_token);
 
+// computes and returns a DeLETE request string
+char* compute_delete_request(const char* host, const string& url, const string& jwt_token);
+
 #endif
 
 

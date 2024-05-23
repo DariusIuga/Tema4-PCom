@@ -3,11 +3,11 @@
 #include <sys/socket.h>
 #include <vector>
 #include <cstring>
+#include <unordered_map>
 
 // Libraries for the client
 #include "helpers.hpp"
 #include "requests.hpp"
-#include <unordered_map>
 #include "nlohmann/json.hpp"
 
 using namespace std;
@@ -102,6 +102,7 @@ int main() {
         string input;
         cin >> input;
 
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore leftover newline character
 
         Command command = InvalidCommand;
 
@@ -241,8 +242,7 @@ int main() {
         }
         case GetBook:
         {
-            // Output a prompt for creating a new book
-            // and get input from the user.
+            // Get a book's id.
             string id;
 
             cout << "id=";
@@ -277,8 +277,6 @@ int main() {
             // Output a prompt for creating a new book
             // and get input from the user.
             string title, author, genre, publisher, page_count;
-
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore leftover newline character
 
             cout << "title=";
             getline(cin, title);
@@ -323,8 +321,38 @@ int main() {
             break;
         }
         case DeleteBook:
-            cout << "Delete book command executed" << endl;
+        {
+            // Get a book's id.
+            string id;
+
+            cout << "id=";
+            cin >> id;
+
+            // Validate id.
+            if (is_a_number(id) == false) {
+                break;
+            }
+
+            // Add id to URL
+            url = "/api/v1/tema/library/books" + '/' + id;
+
+            // Create delete request.
+            request = compute_delete_request(SERVER_IP, url, jwt_token);
+
+            sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
+                SOCK_STREAM, 0);
+
+            send_to_server(sockfd, request);
+
+            response = receive_from_server(sockfd);
+
+            close_connection(sockfd);
+
+            // Print the response from the server.
+            cout << response << endl;
+
             break;
+        }
         case Logout:
             cout << "Logout command executed" << endl;
             break;

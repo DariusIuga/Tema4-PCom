@@ -14,8 +14,7 @@ using namespace std;
 using json = nlohmann::json;
 
 
-char* compute_get_request(const char* host, const string& url, char* query_params,
-    const vector<string> cookies, const string& jwt_token) {
+char* compute_get_request(const char* host, const string& url, char* query_params, const vector<string> cookies, const string& jwt_token) {
     char* message = (char*)calloc(BUFLEN, sizeof(char));
     char* line = (char*)calloc(LINELEN, sizeof(char));
 
@@ -99,5 +98,32 @@ char* compute_post_request(const char* host, const string& url, const string& co
     strcat(message, payload.c_str());
 
     free(line);
+    return message;
+}
+
+char* compute_delete_request(const char* host, const string& url, const string& jwt_token)
+{
+    char* message = (char*)calloc(BUFLEN, sizeof(char));
+    char* line = (char*)calloc(LINELEN, sizeof(char));
+
+    // Step 1: write the method name, URL, request params (if any) and protocol type
+    memset(line, 0, sizeof(char) * LINELEN);
+    sprintf(line, "DELETE %s HTTP/1.1", url.c_str());
+    compute_message(message, line);
+
+    // Step 2: add the host
+    memset(line, 0, sizeof(char) * LINELEN);
+    sprintf(line, "Host: %s", host);
+    compute_message(message, line);
+
+    // Step 3: add the jwt token
+    if (jwt_token.empty() == false) {
+        memset(line, 0, sizeof(char) * LINELEN);
+        sprintf(line, "Authorization: Bearer %s", jwt_token.c_str());
+        compute_message(message, line);
+    }
+
+    // Step 4: add final new line
+    compute_message(message, "");
     return message;
 }
