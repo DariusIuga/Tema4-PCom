@@ -14,17 +14,17 @@ using namespace std;
 using json = nlohmann::json;
 
 
-char* compute_get_request(const char* host, const char* url, char* query_params,
+char* compute_get_request(const char* host, const string& url, char* query_params,
     const vector<string> cookies, const string& jwt_token) {
     char* message = (char*)calloc(BUFLEN, sizeof(char));
     char* line = (char*)calloc(LINELEN, sizeof(char));
 
     // Step 1: write the method name, URL, request params (if any) and protocol type
     if (query_params != NULL) {
-        sprintf(line, "GET %s?%s HTTP/1.1", url, query_params);
+        sprintf(line, "GET %s?%s HTTP/1.1", url.c_str(), query_params);
     }
     else {
-        sprintf(line, "GET %s HTTP/1.1", url);
+        sprintf(line, "GET %s HTTP/1.1", url.c_str());
     }
 
     compute_message(message, line);
@@ -56,14 +56,13 @@ char* compute_get_request(const char* host, const char* url, char* query_params,
     return message;
 }
 
-char* compute_post_request(const char* host, const char* url, char* const content_type,
-    const json* json, const string& jwt_token) {
+char* compute_post_request(const char* host, const string& url, const string& content_type, const json& json, const string& jwt_token) {
     char* message = (char*)calloc(BUFLEN, sizeof(char));
     char* line = (char*)calloc(LINELEN, sizeof(char));
 
     // Step 1: write the method name, URL and protocol type
     memset(line, 0, sizeof(char) * LINELEN);
-    sprintf(line, "POST %s HTTP/1.1", url);
+    sprintf(line, "POST %s HTTP/1.1", url.c_str());
     compute_message(message, line);
 
     // Step 2: add the host
@@ -75,10 +74,10 @@ char* compute_post_request(const char* host, const char* url, char* const conten
             in order to write Content-Length you must first compute the message size
     */
     // dump converts a json object to a string (serialization)
-    string payload = json->dump();
+    string payload = json.dump();
 
     memset(line, 0, sizeof(char) * LINELEN);
-    sprintf(line, "Content-Type: %s", content_type);
+    sprintf(line, "Content-Type: %s", content_type.c_str());
     compute_message(message, line);
 
     memset(line, 0, sizeof(char) * LINELEN);

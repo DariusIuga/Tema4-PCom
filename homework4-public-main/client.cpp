@@ -45,6 +45,25 @@ const string get_cookie(char* response) {
     return "";
 }
 
+bool is_a_number(string str) {
+    if (str.empty()) {
+        // Check for empty strings
+        return false;
+    }
+
+    // num should contain what's after the parsed number.
+    // So, if it points to \0 after strtol, the whole string was indeed a number.
+    char* num;
+    strtol(str.c_str(), &num, 10);
+
+    if (*num == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 // Used for selecting which action the client will do
 enum Command {
     Register,
@@ -75,6 +94,7 @@ int main() {
     int sockfd;
     char* request;
     char* response;
+    string url;
     string session_cookie;
     string jwt_token;
 
@@ -115,7 +135,8 @@ int main() {
                 {"password", password}
             };
 
-            request = compute_post_request(SERVER_IP, "/api/v1/tema/auth/register", "application/json", &prompt_json, "");
+            url = "/api/v1/tema/auth/register";
+            request = compute_post_request(SERVER_IP, url, "application/json", prompt_json, "");
 
             sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
                 SOCK_STREAM, 0);
@@ -152,7 +173,8 @@ int main() {
                 {"password", password}
             };
 
-            request = compute_post_request(SERVER_IP, "/api/v1/tema/auth/login", "application/json", &prompt_json, "");
+            url = "/api/v1/tema/auth/login";
+            request = compute_post_request(SERVER_IP, url, "application/json", prompt_json, "");
 
             sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
                 SOCK_STREAM, 0);
@@ -177,10 +199,13 @@ int main() {
             // I used a whole vector in case there were multiple cookies that needed to be send in the request.
             vector<string> cookies;
             cookies.push_back(session_cookie);
-            request = compute_get_request(SERVER_IP, "/api/v1/tema/library/access", NULL, cookies, "");
+            url = "/api/v1/tema/library/access";
+            request = compute_get_request(SERVER_IP, url, NULL, cookies, "");
 
             sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
                 SOCK_STREAM, 0);
+
+            send_to_server(sockfd, request);
 
             response = receive_from_server(sockfd);
 
@@ -195,14 +220,108 @@ int main() {
             break;
         }
         case GetAllBooks:
-            cout << "Get all books command executed" << endl;
+        {
+            vector<string> cookies;
+            url = "/api/v1/tema/library/books";
+            request = compute_get_request(SERVER_IP, url, NULL, cookies, jwt_token);
+
+            sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
+                SOCK_STREAM, 0);
+
+            send_to_server(sockfd, request);
+
+            response = receive_from_server(sockfd);
+
+            close_connection(sockfd);
+
+            // Print the response from the server.
+            cout << response << endl;
+
             break;
+        }
         case GetBook:
-            cout << "Get book command executed" << endl;
+        {
+            // Output a prompt for creating a new book
+            // and get input from the user.
+            string id;
+
+            cout << "id=";
+            cin >> id;
+
+            // Validate id.
+            if (is_a_number(id) == false) {
+                break;
+            }
+
+            // Add id to URL
+            url = "/api/v1/tema/library/books" + '/' + id;
+            vector<string> cookies;
+            request = compute_get_request(SERVER_IP, url, NULL, cookies, jwt_token);
+
+            sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
+                SOCK_STREAM, 0);
+
+            send_to_server(sockfd, request);
+
+            response = receive_from_server(sockfd);
+
+            close_connection(sockfd);
+
+            // Print the response from the server.
+            cout << response << endl;
+
             break;
+        }
         case AddBook:
-            cout << "Add book command executed" << endl;
+        {
+            cout << "Adding book!" << endl;
+            // Output a prompt for creating a new book
+            // and get input from the user.
+            string title, author, genre, publisher, page_count;
+
+            cin.clear();
+            cout << "title=";
+            getline(cin, title);
+            cout << "author=";
+            getline(cin, author);
+            cout << "genre=";
+            getline(cin, genre);
+            cout << "publisher=";
+            getline(cin, publisher);
+            cout << "page_count=";
+            getline(cin, page_count);
+
+            // Validate page count.
+            if (is_a_number(page_count) == false) {
+                break;
+            }
+
+            // Create json for the book to be added.
+            json new_book_json = {
+                   {"title", title},
+                   {"author", author},
+                   {"genre", genre},
+                   {"page_count", stoi(page_count)},
+                   {"publisher", publisher}
+            };
+
+            url = "/api/v1/tema/library/books";
+            compute_post_request(SERVER_IP, url, "application/json", new_book_json, jwt_token);
+
+            sockfd = open_connection(SERVER_IP, SERVER_PORT, AF_INET,
+                SOCK_STREAM, 0);
+
+            send_to_server(sockfd, request);
+
+            response = receive_from_server(sockfd);
+
+            close_connection(sockfd);
+
+            // Print the response from the server.
+            cout << response << endl;
+
             break;
+        }
         case DeleteBook:
             cout << "Delete book command executed" << endl;
             break;
